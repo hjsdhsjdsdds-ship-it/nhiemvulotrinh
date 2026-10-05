@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhiệm Vụ & Lộ Trình</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Nhiệm Vụ & Lộ Trình <span class="text-sm font-semibold px-2 py-0.5 ml-1.5 rounded-full bg-blue-100 text-blue-700">ESP32-S3 Upgrade</span></h1>
+          <p class="text-xs text-slate-500">Quản lý mục tiêu, giai đoạn và công việc nâng cấp hệ thống</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <button id="btnExport" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+          Xuất dữ liệu
+        </button>
+        <button id="btnOpenModal" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm flex items-center space-x-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Thêm nhiệm vụ</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Stats Overview -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Tổng nhiệm vụ</p>
+          <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          📋
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Đang thực hiện</p>
+          <p id="statInProgress" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          ⚡
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Đã hoàn thành</p>
+          <p id="statDone" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+          🎉
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div class="w-full">
+          <div class="flex justify-between items-center mb-1.5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Tiến độ lộ trình</p>
+            <span id="statPercent" class="text-sm font-bold text-blue-600">0%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+            <div id="statProgressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roadmap Stages (Timeline) -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Lộ Trình Các Giai Đoạn</h2>
+          <p class="text-xs text-slate-500">Các cột mốc phát triển chính theo thời gian</p>
+        </div>
+        <div class="flex gap-2" id="phaseFilterContainer">
+          <!-- Dynamic Phase Buttons -->
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="stagesContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Kanban / Task Board -->
+    <section>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h2 class="text-lg font-bold text-slate-900">Bảng Nhiệm Vụ Chi Tiết</h2>
+        <div class="flex items-center gap-3">
+          <input id="searchInput" type="text" placeholder="Tìm kiếm nhiệm vụ..." class="px-3.5 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Col: To Do -->
+        <div class="bg-slate-100/70 p-4 rounded-2xl border border-slate-200/80 flex flex-col min-h-[400px]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+              <h3 class="font-bold text-sm text-slate-700">Chờ Thực Hiện</h3>
+            </div>
+            <span id="badgeTodo" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0</span>
+          </div>
+          <div id="colTodo" class="space-y-3 flex-1"></div>
+        </div>
+
+        <!-- Col: In Progress -->
+        <div class="bg-slate-100/70 p-4 rounded-2xl border border-slate-200/80 flex flex-col min-h-[400px]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <h3 class="font-bold text-sm text-slate-700">Đang Thực Hiện</h3>
+            </div>
+            <span id="badgeInProgress" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">0</span>
+          </div>
+          <div id="colInProgress" class="space-y-3 flex-1"></div>
+        </div>
+
+        <!-- Col: Done -->
+        <div class="bg-slate-100/70 p-4 rounded-2xl border border-slate-200/80 flex flex-col min-h-[400px]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <h3 class="font-bold text-sm text-slate-700">Đã Hoàn Thành</h3>
+            </div>
+            <span id="badgeDone" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">0</span>
+          </div>
+          <div id="colDone" class="space-y-3 flex-1"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Add/Edit Task -->
+  <div id="taskModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-150">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="modalTitle" class="font-bold text-slate-900">Thêm Nhiệm Vụ Mới</h3>
+        <button id="btnCloseModal" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="taskForm" class="p-6 space-y-4">
+        <input type="hidden" id="taskId">
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Tên nhiệm vụ *</label>
+          <input type="text" id="taskTitle" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="VD: Thiết kế cấu trúc cơ sở dữ liệu">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Giai đoạn lộ trình</label>
+          <select id="taskStage" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="phase-1">Giai đoạn 1: Khởi động & Chuẩn bị</option>
+            <option value="phase-2">Giai đoạn 2: Phát triển & Triển khai</option>
+            <option value="phase-3">Giai đoạn 3: Tối ưu & Bàn giao</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Mức ưu tiên</label>
+            <select id="taskPriority" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="high">Cao</option>
+              <option value="medium" selected>Trung bình</option>
+              <option value="low">Thấp</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Trạng thái</label>
+            <select id="taskStatus" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="todo">Chờ thực hiện</option>
+              <option value="in_progress">Đang làm</option>
+              <option value="done">Hoàn thành</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Hạn chót (Deadline)</label>
+          <input type="date" id="taskDeadline" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Mô tả chi tiết</label>
+          <textarea id="taskDesc" rows="3" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Chi tiết yêu cầu, lưu ý..."></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" id="btnCancelModal" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm">Lưu nhiệm vụ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script>
+    const STORAGE_KEY = 'nhiem_vu_lo_trinh_data';
+
+    const defaultStages = [
+      { id: 'phase-1', name: 'Giai đoạn 1', title: 'Phần Cứng & Môi Trường ESP32-S3', desc: 'Khởi tạo môi trường ESP-IDF/PlatformIO, kiểm tra Flash, PSRAM và phân bổ pinout.', icon: '⚡' },
+      { id: 'phase-2', name: 'Giai đoạn 2', title: 'Firmware & Tính Năng Nâng Cấp', desc: 'Lập trình FreeRTOS đa nhiệm, kết nối Wi-Fi/BLE, xử lý tín hiệu và tính năng mới.', icon: '🛠️' },
+      { id: 'phase-3', name: 'Giai đoạn 3', title: 'Kiểm Thử, OTA & Bàn Giao', desc: 'Tối ưu công suất, cập nhật từ xa OTA, kiểm thử độ ổn định và hoàn thiện tài liệu.', icon: '🚀' },
+    ];
+
+    const initialTasks = [
+      { id: '1', title: 'Thiết lập kho mã nguồn GitHub & cấu hình ESP-IDF / PlatformIO', stage: 'phase-1', priority: 'high', status: 'done', deadline: '2026-10-06', desc: 'Khởi tạo repository, branch ESP32S3_Dat_upgrade và môi trường phát triển.' },
+      { id: '2', title: 'Thiết kế phân bổ chân (Pinout), kiểm tra Flash và PSRAM ESP32-S3', stage: 'phase-1', priority: 'high', status: 'in_progress', deadline: '2026-10-10', desc: 'Đảm bảo cấu hình phần cứng tương thích tối đa với phiên bản chip S3.' },
+      { id: '3', title: 'Xây dựng kiến trúc đa luồng FreeRTOS & kết nối Wi-Fi / BLE', stage: 'phase-2', priority: 'high', status: 'todo', deadline: '2026-10-15', desc: 'Tận dụng vi xử lý Dual-core Xtensa LX7 để xử lý đồng thời tác vụ mạng và cảm biến.' },
+      { id: '4', title: 'Tích hợp cơ chế nâng cấp từ xa qua mạng (OTA Firmware Update)', stage: 'phase-2', priority: 'medium', status: 'todo', deadline: '2026-10-20', desc: 'Cho phép cập nhật phần mềm không dây an toàn với cơ sở dữ liệu rollback.' },
+      { id: '5', title: 'Kiểm thử độ ổn định (Stress test) và tối ưu hóa điện năng', stage: 'phase-3', priority: 'medium', status: 'todo', deadline: '2026-10-25', desc: 'Đo đạc dòng tiêu thụ ở chế độ Deep Sleep và hoàn thiện tài liệu bàn giao.' },
+    ];
+
+    let tasks = [];
+    let selectedFilterPhase = 'all';
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          tasks = JSON.parse(saved);
+        } catch (e) {
+          tasks = [...initialTasks];
+        }
+      } else {
+        tasks = [...initialTasks];
+        saveData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      render();
+    }
+
+    function renderStages() {
+      const container = document.getElementById('stagesContainer');
+      container.innerHTML = defaultStages.map(stage => {
+        const stageTasks = tasks.filter(t => t.stage === stage.id);
+        const stageDone = stageTasks.filter(t => t.status === 'done').length;
+        const percent = stageTasks.length ? Math.round((stageDone / stageTasks.length) * 100) : 0;
+        
+        return `
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 hover:bg-slate-50 transition">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xl">${stage.icon}</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">${stage.name}</span>
+            </div>
+            <h4 class="font-bold text-slate-800 text-sm mb-1">${stage.title}</h4>
+            <p class="text-xs text-slate-500 mb-3">${stage.desc}</p>
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-slate-500">
+                <span>${stageDone}/${stageTasks.length} nhiệm vụ</span>
+                <span class="font-semibold text-slate-700">${percent}%</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${percent}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTasks() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const colTodo = document.getElementById('colTodo');
+      const colInProgress = document.getElementById('colInProgress');
+      const colDone = document.getElementById('colDone');
+
+      colTodo.innerHTML = '';
+      colInProgress.innerHTML = '';
+      colDone.innerHTML = '';
+
+      let cTodo = 0, cProg = 0, cDone = 0;
+
+      tasks.forEach(task => {
+        if (selectedFilterPhase !== 'all' && task.stage !== selectedFilterPhase) return;
+        if (q && !task.title.toLowerCase().includes(q) && !(task.desc || '').toLowerCase().includes(q)) return;
+
+        const priorityColors = {
+          high: 'bg-rose-50 text-rose-600 border-rose-200',
+          medium: 'bg-amber-50 text-amber-600 border-amber-200',
+          low: 'bg-blue-50 text-blue-600 border-blue-200'
+        };
+        const priorityLabels = { high: 'Ưu tiên cao', medium: 'Trung bình', low: 'Thấp' };
+
+        const stageObj = defaultStages.find(s => s.id === task.stage) || { name: 'Chung' };
+
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow transition group relative";
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${priorityColors[task.priority] || priorityColors.medium}">
+              ${priorityLabels[task.priority] || 'Bình thường'}
+            </span>
+            <span class="text-[10px] text-slate-400 font-medium">${stageObj.name}</span>
+          </div>
+          <h4 class="font-semibold text-sm text-slate-800 mb-1 leading-snug">${task.title}</h4>
+          ${task.desc ? `<p class="text-xs text-slate-500 mb-3 line-clamp-2">${task.desc}</p>` : ''}
+          
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+            <span>📅 ${task.deadline || 'Chưa đặt hạn'}</span>
+            <div class="flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition">
+              <select onchange="updateTaskStatus('${task.id}', this.value)" class="text-[11px] bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-600 focus:outline-none">
+                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>Chờ làm</option>
+                <option value="in_progress" ${task.status === 'in_progress' ? 'selected' : ''}>Đang làm</option>
+                <option value="done" ${task.status === 'done' ? 'selected' : ''}>Xong</option>
+              </select>
+              <button onclick="deleteTask('${task.id}')" class="p-1 text-slate-300 hover:text-rose-500 transition" title="Xóa">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            </div>
+          </div>
+        `;
+
+        if (task.status === 'todo') {
+          colTodo.appendChild(card);
+          cTodo++;
+        } else if (task.status === 'in_progress') {
+          colInProgress.appendChild(card);
+          cProg++;
+        } else if (task.status === 'done') {
+          colDone.appendChild(card);
+          cDone++;
+        }
+      });
+
+      document.getElementById('badgeTodo').innerText = cTodo;
+      document.getElementById('badgeInProgress').innerText = cProg;
+      document.getElementById('badgeDone').innerText = cDone;
+    }
+
+    function renderStats() {
+      const total = tasks.length;
+      const inProg = tasks.filter(t => t.status === 'in_progress').length;
+      const done = tasks.filter(t => t.status === 'done').length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statInProgress').innerText = inProg;
+      document.getElementById('statDone').innerText = done;
+      document.getElementById('statPercent').innerText = `${pct}%`;
+      document.getElementById('statProgressBar').style.width = `${pct}%`;
+    }
+
+    function render() {
+      renderStats();
+      renderStages();
+      renderTasks();
+    }
+
+    function updateTaskStatus(id, newStatus) {
+      const t = tasks.find(x => x.id === id);
+      if (t) {
+        t.status = newStatus;
+        saveData();
+      }
+    }
+
+    function deleteTask(id) {
+      if (confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) {
+        tasks = tasks.filter(x => x.id !== id);
+        saveData();
+      }
+    }
+
+    // Modal Handlers
+    const modal = document.getElementById('taskModal');
+    document.getElementById('btnOpenModal').onclick = () => {
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskId').value = '';
+      document.getElementById('modalTitle').innerText = 'Thêm Nhiệm Vụ Mới';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    const closeModal = () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+    document.getElementById('btnCloseModal').onclick = closeModal;
+    document.getElementById('btnCancelModal').onclick = closeModal;
+
+    document.getElementById('taskForm').onsubmit = (e) => {
+      e.preventDefault();
+      const id = document.getElementById('taskId').value || Date.now().toString();
+      const newTask = {
+        id,
+        title: document.getElementById('taskTitle').value.trim(),
+        stage: document.getElementById('taskStage').value,
+        priority: document.getElementById('taskPriority').value,
+        status: document.getElementById('taskStatus').value,
+        deadline: document.getElementById('taskDeadline').value,
+        desc: document.getElementById('taskDesc').value.trim(),
+      };
+
+      const existingIdx = tasks.findIndex(x => x.id === id);
+      if (existingIdx >= 0) {
+        tasks[existingIdx] = newTask;
+      } else {
+        tasks.push(newTask);
+      }
+
+      saveData();
+      closeModal();
+    };
+
+    document.getElementById('searchInput').oninput = renderTasks;
+
+    document.getElementById('btnExport').onclick = () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "nhiem_vu_lo_trinh.json");
+      dlAnchor.click();
+    };
+
+    // Init
+    loadData();
+    render();
+  </script>
+</body>
+</html>
